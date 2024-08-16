@@ -1,15 +1,18 @@
 import { NextResponse } from "next/server";
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const genAI = new GoogleGenerativeAI("AIzaSyBwuYNmc1DMhJhGdR6HKB9Eetgfwphyz1I");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-export async function GET() {
-  //   const data = await request.json();
+export async function POST(request: Request) {
+  const data = await request.json();
 
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  const result = await model.generateContent(["I want to die"]);
-  console.log(result.response.text());
+  const result = await model.generateContent([
+    `${data.input}, Act as an Mental health Chatbot and reply`,
+  ]);
 
   return NextResponse.json({
-    text: result.response.text(),
+    status: "success",
+    result: result.response.text(),
+    userInput: data.input,
   });
 }

@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { BotIcon } from "lucide-react";
 import { useState } from "react";
+import Markdown from "react-markdown";
 
 interface ChatHistory {
   userInput: string;
@@ -11,16 +12,34 @@ interface ChatHistory {
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
-  const [chatHistory, setChatHistory] = useState<ChatHistory>();
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    console.log(input);
+    fetch("http://localhost:3000/api/getResponse", {
+      method: "POST",
+      body: JSON.stringify({
+        input,
+      }),
+      headers: {
+        "Content-type": "application/json",
+      },
+    }).then(async (response) => {
+      const botResponse = await response.json();
+      setChatHistory((chatHistory) => [
+        ...chatHistory,
+        {
+          botResponse: botResponse.result,
+          userInput: botResponse.userInput,
+        },
+      ]);
+      setInput("");
+    });
   };
 
   return (
-    <main className="md:px-20 ">
-      <div className="flex flex-col h-screen shadow-lg p-5">
+    <main className=" ">
+      <div className="flex flex-col h-screen shadow-lg p-4 md:p-16">
         <header className="bg-gradient-to-r rounded-md from-blue-600 to-blue-900 text-white py-3 px-4 flex items-center">
           <div className="flex items-center gap-2">
             <BotIcon className="w-6 h-6" />
@@ -28,7 +47,15 @@ export default function Home() {
           </div>
         </header>
         <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
-          <ChatComponent botResponse={"Hi"} yourResponse={"Hello"} />
+          {chatHistory.map((chat, index) => {
+            return (
+              <ChatComponent
+                key={index}
+                botResponse={chat.botResponse}
+                userInput={chat.userInput}
+              />
+            );
+          })}
         </div>
         <form
           onSubmit={handleSubmit}
@@ -65,7 +92,7 @@ export const ChatComponent = ({
         <div className="grid gap-1 items-start text-sm">
           <div className="font-bold text-[#7b2cbf]">Mental Health Chatbot</div>
           <div>
-            <p>{botResponse}</p>
+            <Markdown>{botResponse.toString()}</Markdown>
           </div>
         </div>
       </div>
