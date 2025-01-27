@@ -1,10 +1,12 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { BotIcon, Send, WifiOff } from "lucide-react";
+import { BotIcon, Send, WifiOff, LogOut } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Markdown from "react-markdown";
 import { motion, AnimatePresence } from "framer-motion";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 interface ChatHistory {
   userInput: string;
@@ -19,7 +21,8 @@ export default function Home() {
   const [sendingText, setSendingText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const supabase = createClient();
+  const router = useRouter();
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -44,6 +47,14 @@ export default function Home() {
       window.removeEventListener("offline", handleOffline);
     };
   }, []);
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Error signing out:", error.message);
+    }
+    router.push("/login");
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -100,11 +111,20 @@ export default function Home() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-gray-100 p-4">
       <div className="flex-1 flex flex-col bg-white shadow-xl rounded-xl max-w-4xl mx-auto h-[800px]">
-        <header className="flex items-center px-6 py-4 border-b bg-white rounded-t-xl">
-          <BotIcon className="w-8 h-8 text-blue-600" />
-          <h1 className="ml-3 text-xl font-semibold text-gray-800">
-            Mental Health Assistant
-          </h1>
+        <header className="flex items-center justify-between px-6 py-4 border-b bg-white rounded-t-xl">
+          <div className="flex items-center">
+            <BotIcon className="w-8 h-8 text-blue-600" />
+            <h1 className="ml-3 text-xl font-semibold text-gray-800">
+              Mental Health Assistant
+            </h1>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Sign Out</span>
+          </button>
         </header>
 
         <div className="flex-1 overflow-y-auto px-6 py-4 relative">
