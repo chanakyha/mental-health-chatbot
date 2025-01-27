@@ -2,9 +2,9 @@
 
 import { Input } from "@/components/ui/input";
 import { BotIcon, Send, WifiOff } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Markdown from "react-markdown";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatHistory {
   userInput: string;
@@ -16,6 +16,17 @@ export default function Home() {
   const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [sendingText, setSendingText] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatHistory, isLoading]);
 
   useEffect(() => {
     // Check initial online status
@@ -38,7 +49,14 @@ export default function Home() {
     e.preventDefault();
     if (!input.trim() || !isOnline) return;
 
+    setSendingText(input);
+    setIsSending(true);
     setIsLoading(true);
+
+    // Wait for animation to complete
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setIsSending(false);
+
     try {
       const response = await fetch("http://localhost:3000/api/getResponse", {
         method: "POST",
@@ -80,16 +98,16 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-gray-100">
-      <div className="flex-1 flex flex-col bg-white shadow-xl">
-        <header className="flex items-center px-6 py-4 border-b bg-white">
+    <div className="flex h-screen w-full items-center justify-center bg-gray-100 p-4">
+      <div className="flex-1 flex flex-col bg-white shadow-xl rounded-xl max-w-4xl mx-auto h-[800px]">
+        <header className="flex items-center px-6 py-4 border-b bg-white rounded-t-xl">
           <BotIcon className="w-8 h-8 text-blue-600" />
           <h1 className="ml-3 text-xl font-semibold text-gray-800">
             Mental Health Assistant
           </h1>
         </header>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="flex-1 overflow-y-auto px-6 py-4 relative">
           {chatHistory.length === 0 && !isLoading && (
             <div className="flex items-start space-x-4 mb-8">
               <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
@@ -142,7 +160,22 @@ export default function Home() {
               userInput={chat.userInput}
             />
           ))}
-          {isLoading && (
+
+          <AnimatePresence>
+            {isSending && (
+              <motion.div
+                initial={{ y: 100, x: "50%", opacity: 0 }}
+                animate={{ y: -100, x: "-50%", opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="absolute bottom-0 left-1/2 bg-blue-50 rounded-lg p-4 shadow-lg"
+              >
+                {sendingText}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {isLoading && !isSending && (
             <div className="flex flex-col space-y-4">
               <div className="flex items-start space-x-3 justify-end">
                 <div className="flex-1 bg-blue-50 rounded-lg p-4 max-w-[80%]">
@@ -177,9 +210,13 @@ export default function Home() {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
-        <form onSubmit={handleSubmit} className="border-t p-4 bg-white">
+        <form
+          onSubmit={handleSubmit}
+          className="border-t p-4 bg-white rounded-b-xl"
+        >
           <div className="flex items-center space-x-4">
             <Input
               value={input}
@@ -209,17 +246,25 @@ export const ChatComponent = ({
   botResponse,
 }: ChatComponentProps) => {
   const [displayedResponse, setDisplayedResponse] = useState("");
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   useEffect(() => {
-    if (currentIndex < botResponse.length) {
-      const timer = setTimeout(() => {
-        setDisplayedResponse((prev) => prev + botResponse[currentIndex]);
-        setCurrentIndex((prev) => prev + 1);
-      }, 10); // Adjust typing speed here (milliseconds)
-      return () => clearTimeout(timer);
+    if (!hasAnimated) {
+      let currentIndex = 0;
+      const timer = setInterval(() => {
+        if (currentIndex < botResponse.length) {
+          setDisplayedResponse((prev) => prev + botResponse[currentIndex]);
+          currentIndex++;
+        } else {
+          clearInterval(timer);
+          setHasAnimated(true);
+        }
+      }, 10);
+      return () => clearInterval(timer);
+    } else {
+      setDisplayedResponse(botResponse);
     }
-  }, [currentIndex, botResponse]);
+  }, [botResponse, hasAnimated]);
 
   return (
     <div className="space-y-4 mb-6">
