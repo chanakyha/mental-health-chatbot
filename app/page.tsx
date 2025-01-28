@@ -316,27 +316,6 @@ export default function Home() {
   ) => {
     if (!chatId) return;
 
-    // Create new chat if this is the first message
-    if (chatHistory.length === 0) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from("chats")
-        .insert([{ user_id: user.id }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error creating new chat:", error);
-        return;
-      }
-
-      setChatId(data.id);
-    }
-
     const { error } = await supabase.from("messages").insert([
       {
         chat_id: chatId,
@@ -372,10 +351,29 @@ export default function Home() {
       });
       const botResponse = await response.json();
 
-      // Save to database only after first bot response
-      if (chatHistory.length === 0) {
-        await saveMessageToDatabase(botResponse.userInput, botResponse.result);
+      // Create new chat if this is the first message
+      if (!chatId) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabase
+          .from("chats")
+          .insert([{ user_id: user.id }])
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Error creating new chat:", error);
+          return;
+        }
+
+        setChatId(data.id);
       }
+
+      // Save message to database
+      await saveMessageToDatabase(botResponse.userInput, botResponse.result);
 
       setChatHistory((prev) => [
         ...prev,
