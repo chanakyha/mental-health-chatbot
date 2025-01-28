@@ -553,55 +553,7 @@ export default function Home() {
                   )}
                 </AnimatePresence>
 
-                {isLoading && !isSending && (
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex items-start space-x-3 justify-end">
-                      <div className="flex-1 bg-blue-50 rounded-lg p-3 sm:p-4 max-w-[80%]">
-                        <div className="text-xs sm:text-sm text-gray-500 mb-1">
-                          You
-                        </div>
-                        <p className="text-sm sm:text-base text-gray-800">
-                          {input}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-600 text-xs sm:text-sm font-medium">
-                          You
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-600 flex items-center justify-center">
-                        <BotIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{ repeat: Infinity, duration: 1 }}
-                          className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full"
-                        />
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 1,
-                            delay: 0.2,
-                          }}
-                          className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full"
-                        />
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1] }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 1,
-                            delay: 0.4,
-                          }}
-                          className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {isLoading && !isSending && <ChatSkeleton />}
                 <div ref={messagesEndRef} />
               </>
             )}
@@ -640,9 +592,36 @@ export default function Home() {
 
 interface ChatComponentProps extends ChatHistory {}
 
+const ChatSkeleton = () => (
+  <div className="space-y-4 mb-6 animate-pulse">
+    <div className="flex items-start space-x-3 justify-end">
+      <div className="flex-1 bg-gray-200 rounded-lg p-4 max-w-[80%] h-24" />
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-300" />
+    </div>
+    <div className="flex items-start space-x-3">
+      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gray-300" />
+      <div className="flex-1 bg-gray-200 rounded-lg p-4 max-w-[80%] h-32" />
+    </div>
+  </div>
+);
+
 const ChatComponent = ({ userInput, botResponse }: ChatComponentProps) => {
   const [displayedResponse, setDisplayedResponse] = useState("");
   const [hasAnimated, setHasAnimated] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserProfile(user);
+      }
+    };
+    fetchUserProfile();
+  }, []);
 
   useEffect(() => {
     if (!hasAnimated) {
@@ -669,10 +648,20 @@ const ChatComponent = ({ userInput, botResponse }: ChatComponentProps) => {
           <div className="text-xs sm:text-sm text-gray-500 mb-1">You</div>
           <p className="text-sm sm:text-base text-gray-800">{userInput}</p>
         </div>
-        <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-600 text-xs sm:text-sm font-medium">
-            You
-          </span>
+        <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+          {userProfile?.user_metadata?.avatar_url ? (
+            <Image
+              src={userProfile.user_metadata.avatar_url}
+              alt="Profile"
+              className="w-full h-full object-cover"
+              width={40}
+              height={40}
+            />
+          ) : (
+            <span className="text-gray-600 text-xs sm:text-sm font-medium">
+              You
+            </span>
+          )}
         </div>
       </div>
 
