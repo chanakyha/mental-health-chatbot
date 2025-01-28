@@ -363,7 +363,7 @@ export default function Home() {
     setIsSending(false);
 
     try {
-      const response = await fetch("http://localhost:3000/api/getResponse", {
+      const response = await fetch("/api/getResponse", {
         method: "POST",
         body: JSON.stringify({ input }),
         headers: {
