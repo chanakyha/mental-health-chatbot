@@ -65,6 +65,33 @@
   }
   body {
     @apply bg-background text-foreground;
+    cursor: default; /* Standard cursor */
+  }
+
+  /* Global scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: hsl(var(--secondary));
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.6);
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground));
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.6) hsl(var(--secondary));
   }
 
   button {
@@ -77,6 +104,23 @@
 
   .btn {
     @apply rounded-md font-bold uppercase px-4 py-2 text-sm  bg-gradient-to-r from-red-600 to-red-800 text-white duration-300;
+  }
+
+  /* Other common cursor types */
+  .help-text {
+    cursor: help;
+  }
+
+  .draggable {
+    cursor: grab;
+  }
+
+  .draggable:active {
+    cursor: grabbing;
+  }
+
+  .loading {
+    cursor: wait;
   }
 }
 

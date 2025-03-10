@@ -75,7 +75,7 @@ export default function LayoutProvider({ children }: LayoutProviderProps) {
         {/* Main content */}
         <main className="flex-1 relative">{children}</main>
 
-        <Toaster position="top-right" />
+        <Toaster position="top-center" />
       </div>
     </LayoutContext.Provider>
   );

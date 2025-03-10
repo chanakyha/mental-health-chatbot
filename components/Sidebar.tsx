@@ -257,8 +257,7 @@ export default function Sidebar({
 
   // Get the current chat ID directly from the ref for immediate response
   const getCurrentChatId = () => activeChatIdRef.current;
-  const isActive = (chatId: string) =>
-    !isHomePage && getCurrentChatId() === chatId;
+  const isActive = (chatId: string) => pathname.includes(`/chat/${chatId}`);
 
   return (
     <>
@@ -417,10 +416,10 @@ export default function Sidebar({
                 key={chat.id}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className={`rounded-lg overflow-hidden ${
-                  getCurrentChatId() === chat.id
-                    ? "bg-blue-100 border-l-4 border-blue-500"
-                    : "bg-white hover:bg-gray-50 border-l-4 border-transparent"
+                className={`rounded-lg  overflow-y-auto bg-white hover:bg-gray-50 border-l-4 ${
+                  isActive(chat.id)
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-transparent"
                 }`}
               >
                 <div className="flex items-center justify-between p-3">
@@ -428,29 +427,11 @@ export default function Sidebar({
                     onClick={() => loadChat(chat.id)}
                     className="flex items-center space-x-3 flex-grow text-left"
                   >
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        getCurrentChatId() === chat.id
-                          ? "bg-blue-200"
-                          : "bg-gray-100"
-                      }`}
-                    >
-                      <MessageSquare
-                        className={`w-4 h-4 ${
-                          getCurrentChatId() === chat.id
-                            ? "text-blue-600"
-                            : "text-gray-500"
-                        }`}
-                      />
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-100">
+                      <MessageSquare className="w-4 h-4 text-gray-500" />
                     </div>
                     <div className="truncate">
-                      <p
-                        className={`text-sm truncate ${
-                          getCurrentChatId() === chat.id
-                            ? "font-medium text-blue-800"
-                            : "font-normal text-gray-800"
-                        }`}
-                      >
+                      <p className="text-sm truncate font-normal text-gray-800">
                         {chat.messages?.[0]?.user_input || "New Chat"}
                       </p>
                       <p className="text-xs text-gray-500">

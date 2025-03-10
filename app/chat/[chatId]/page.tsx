@@ -415,7 +415,7 @@ export default function ChatPage() {
                 New Conversation
               </button>
               <div className="h-8 w-8 rounded-full overflow-hidden border-2 border-gray-200">
-                {userProfile.user_metadata.avatar_url ? (
+                {userProfile?.user_metadata.avatar_url ? (
                   <Image
                     src={userProfile.user_metadata.avatar_url}
                     alt="Your profile"
@@ -437,7 +437,7 @@ export default function ChatPage() {
       {/* Main Content */}
       <div className="flex-1 overflow-hidden flex items-center justify-center py-0 sm:py-6 lg:py-8">
         <div className="w-full h-full sm:h-auto max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 flex flex-col">
-          <div className="flex-1 flex flex-col h-[calc(100vh-64px)] sm:max-h-[80vh] bg-white shadow-md rounded-none sm:rounded-xl border-0 sm:border border-gray-200">
+          <div className="flex-1 flex flex-col h-[100vh] sm:h-[calc(100vh-64px)] sm:max-h-[80vh] bg-white shadow-md rounded-none sm:rounded-xl border-0 sm:border border-gray-200">
             {/* Chat Header with ID */}
             <div className="bg-gray-50 border-b border-gray-200 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center">
@@ -462,7 +462,7 @@ export default function ChatPage() {
 
             {/* Chat Messages Area */}
             <div
-              className="flex-1 overflow-y-auto p-4 sm:p-6"
+              className="flex-1 overflow-y-auto h-full  p-4 sm:p-6"
               ref={chatAreaRef}
             >
               {!chatStarted ? (
@@ -521,6 +521,50 @@ export default function ChatPage() {
                     )}
                   </AnimatePresence>
 
+                  {/* Show suggested prompts when chat is empty */}
+                  {chatHistory.length === 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="flex flex-col items-center justify-center space-y-4 py-6"
+                    >
+                      <div className="text-center mb-4">
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          Not sure what to ask?
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Try one of these conversation starters:
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
+                        {[
+                          "I've been feeling stressed lately. What can I do?",
+                          "How can I improve my sleep habits?",
+                          "I'm feeling anxious about an upcoming event.",
+                          "What are some mindfulness techniques I can practice?",
+                          "I'm having trouble focusing on my work.",
+                          "How can I cope with negative thoughts?",
+                        ].map((suggestion, idx) => (
+                          <motion.div
+                            key={idx}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="bg-white border border-gray-200 hover:border-indigo-300 rounded-lg p-3 cursor-pointer hover:bg-indigo-50 transition-colors"
+                            onClick={() => {
+                              setInput(suggestion);
+                            }}
+                          >
+                            <p className="text-sm text-gray-700">
+                              {suggestion}
+                            </p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+
                   <AnimatePresence>
                     {chatHistory.map((chat, index) => (
                       <motion.div
@@ -542,7 +586,7 @@ export default function ChatPage() {
                             </motion.div>
                           </div>
                           <div className="h-8 w-8 rounded-full overflow-hidden flex-shrink-0 order-2 flex items-center justify-center bg-gray-200">
-                            {userProfile.user_metadata.avatar_url ? (
+                            {userProfile?.user_metadata.avatar_url ? (
                               <Image
                                 src={userProfile.user_metadata.avatar_url}
                                 alt="Profile"
@@ -595,7 +639,7 @@ export default function ChatPage() {
             </div>
 
             {/* Input Area */}
-            <div className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg">
+            <div className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-none sm:rounded-b-lg">
               <div className="relative flex-1 overflow-hidden rounded-lg shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-indigo-600 bg-white">
                 <Input
                   ref={inputRef}
